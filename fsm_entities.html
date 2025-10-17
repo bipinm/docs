@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive ER Diagram - FSM System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+        }
+
+        #canvas {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            cursor: grab;
+        }
+
+        #canvas.grabbing {
+            cursor: grabbing;
+        }
+
+        .entity {
+            position: absolute;
+            background: white;
+            border: 2px solid #4a5568;
+            border-radius: 8px;
+            padding: 12px 16px;
+            cursor: move;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .entity:hover {
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+            transform: scale(1.05);
+            z-index: 1000;
+        }
+
+        .entity.selected {
+            border-color: #3182ce;
+            border-width: 3px;
+            background: #ebf8ff;
+            box-shadow: 0 0 20px rgba(49, 130, 206, 0.5);
+            z-index: 100;
+        }
+
+        .entity.highlighted {
+            background: #fef5e7;
+            border-color: #f39c12;
+            z-index: 50;
+        }
+
+        .entity.dimmed {
+            opacity: 0.2;
+            filter: grayscale(80%);
+        }
+
+        .entity-name {
+            font-weight: 600;
+            font-size: 13px;
+            color: #2d3748;
+            word-wrap: break-word;
+        }
+
+        .entity-connections {
+            font-size: 10px;
+            color: #718096;
+            margin-top: 4px;
+        }
+
+        svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .connection-line {
+            stroke: #a0aec0;
+            stroke-width: 2;
+            fill: none;
+            opacity: 0.4;
+            transition: all 0.3s ease;
+        }
+
+        .connection-line.highlighted {
+            stroke: #f39c12;
+            stroke-width: 3;
+            opacity: 0.9;
+        }
+
+        .connection-line.dimmed {
+            opacity: 0.08;
+        }
+
+        .connection-label {
+            font-size: 10px;
+            fill: #4a5568;
+            pointer-events: none;
+        }
+
+        #controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 10000;
+            max-width: 300px;
+        }
+
+        #controls h3 {
+            margin-bottom: 10px;
+            color: #2d3748;
+            font-size: 16px;
+        }
+
+        #search {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 8px;
+            background: #f7fafc;
+            border-radius: 4px;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .checkbox-container label {
+            cursor: pointer;
+            font-size: 13px;
+            color: #2d3748;
+            user-select: none;
+        }
+
+        #info {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 10000;
+            max-width: 350px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        #info.visible {
+            display: block;
+        }
+
+        #info h4 {
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+
+        #info ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        #info li {
+            padding: 4px 0;
+            font-size: 12px;
+            color: #4a5568;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 8px 12px;
+            background: #4299e1;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s;
+            flex: 1;
+        }
+
+        button:hover {
+            background: #3182ce;
+        }
+
+        button.secondary {
+            background: #718096;
+        }
+
+        button.secondary:hover {
+            background: #4a5568;
+        }
+
+        button.reset {
+            background: #e53e3e;
+        }
+
+        button.reset:hover {
+            background: #c53030;
+        }
+
+        #legend {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 10000;
+            font-size: 12px;
+        }
+
+        #legend h4 {
+            margin-bottom: 8px;
+            color: #2d3748;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            color: #4a5568;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 3px;
+            margin-right: 8px;
+            background: #a0aec0;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <h3>ER Diagram Controls</h3>
+        <input type="text" id="search" placeholder="Search entities...">
+
+        <div class="checkbox-container">
+            <input type="checkbox" id="autoArrange" onchange="toggleAutoArrange()">
+            <label for="autoArrange">Auto-arrange on selection</label>
+        </div>
+
+        <div class="button-group">
+            <button onclick="resetToOriginal()" class="reset">Reset Position</button>
+            <button onclick="clearSelection()" class="secondary">Clear</button>
+        </div>
+    </div>
+
+    <div id="legend">
+        <h4>Legend</h4>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #a0aec0;"></div>
+            <span>N:1 (Many-to-One)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #48bb78;"></div>
+            <span>1:N (One-to-Many)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #ed8936;"></div>
+            <span>N:M (Many-to-Many)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: #9f7aea;"></div>
+            <span>Self-Reference</span>
+        </div>
+    </div>
+
+    <div id="info">
+        <h4 id="info-title">Entity Information</h4>
+        <div id="info-content"></div>
+    </div>
+
+    <div id="canvas">
+        <svg id="svg"></svg>
+    </div>
+
+    <script>
+        // Data
+        const entities = [
+  "Activity",
+  "ActivityCode",
+  "ActivityFeedback",
+  "ActivitySubType",
+  "ActivityTemplate",
+  "ActivityTopic",
+  "Address",
+  "Alert",
+  "Approval",
+  "Attachment",
+  "Batch",
+  "BlanketOrder",
+  "BusinessPartner",
+  "Case",
+  "CaseOrigin",
+  "CaseType",
+  "Category",
+  "ChecklistAssignment",
+  "ChecklistInstance",
+  "ChecklistTemplate",
+  "Comment",
+  "Configuration",
+  "Contact",
+  "CreditNote",
+  "Equipment",
+  "Expense",
+  "ExpenseType",
+  "File",
+  "Industry",
+  "Item",
+  "ItemPriceListAssignment",
+  "Material",
+  "Mileage",
+  "MileageType",
+  "PaymentTerm",
+  "PaymentType",
+  "Person",
+  "PersonReservation",
+  "PersonReservationType",
+  "PriceList",
+  "Project",
+  "ProjectPhase",
+  "SalesOpportunity",
+  "SalesOrder",
+  "SerialNumber",
+  "ServiceAssignment",
+  "ServiceCall",
+  "ServiceContract",
+  "ServiceContractEquipment",
+  "ServiceWorkflow",
+  "ShippingType",
+  "Tax",
+  "Team",
+  "TimeEffort",
+  "TimeSubTask",
+  "TimeTask",
+  "UnifiedPerson",
+  "Warehouse",
+  "WorkTime",
+  "WorkTimeTask"
+];
+
+        const relationships = [
+  {
+    "source": "Activity",
+    "target": "ActivityTemplate",
+    "label": "activityTemplate",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Activity",
+    "target": "BusinessPartner",
+    "label": "BusinessPartner",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Activity",
+    "target": "Equipment",
+    "label": "equipment",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Activity",
+    "target": "Project",
+    "label": "project",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Activity",
+    "target": "ProjectPhase",
+    "label": "projectPhase",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Activity",
+    "target": "Person",
+    "label": "responsibles",
+    "cardinality": "1:N"
+  },
+  {
+    "source": "Activity",
+    "target": "ServiceWorkflow",
+    "label": "serviceWorkflow",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Activity",
+    "target": "Team",
+    "label": "team",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Activity",
+    "target": "ActivityTopic",
+    "label": "topic",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "ActivityCode",
+    "target": "Item",
+    "label": "items",
+    "cardinality": "N:M"
+  },
+  {
+    "source": "ActivityCode",
+    "target": "ActivityCode",
+    "label": "parentActivityCode",
+    "cardinality": "Self"
+  },
+  {
+    "source": "ActivityFeedback",
+    "target": "Activity",
+    "label": "activity",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "ActivityFeedback",
+    "target": "ActivityCode",
+    "label": "activityCodes",
+    "cardinality": "1:N"
+  },
+  {
+    "source": "ActivityFeedback",
+    "target": "Equipment",
+    "label": "equipment",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "ActivityTemplate",
+    "target": "ActivityTopic",
+    "label": "activityTopic",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "ActivityTemplate",
+    "target": "ChecklistTemplate",
+    "label": "checklistTemplates",
+    "cardinality": "N:M"
+  },
+  {
+    "source": "ActivityTemplate",
+    "target": "Equipment",
+    "label": "equipment",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "ActivityTemplate",
+    "target": "File",
+    "label": "files",
+    "cardinality": "N:M"
+  },
+  {
+    "source": "ActivityTopic",
+    "target": "ActivitySubType",
+    "label": "subtype",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Alert",
+    "target": "Person",
+    "label": "readBy",
+    "cardinality": "N:M"
+  },
+  {
+    "source": "Alert",
+    "target": "Person",
+    "label": "receivers",
+    "cardinality": "N:M"
+  },
+  {
+    "source": "Approval",
+    "target": "BusinessPartner",
+    "label": "BusinessPartner",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Approval",
+    "target": "Person",
+    "label": "decisionMaker",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Approval",
+    "target": "Person",
+    "label": "issuer",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Batch",
+    "target": "Item",
+    "label": "item",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "BlanketOrder",
+    "target": "BusinessPartner",
+    "label": "BusinessPartner",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "BlanketOrder",
+    "target": "Contact",
+    "label": "contact",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "BlanketOrder",
+    "target": "Person",
+    "label": "salesPerson",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "BlanketOrder",
+    "target": "Address",
+    "label": "billingAddress",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "BlanketOrder",
+    "target": "Address",
+    "label": "shippingAddress",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "BusinessPartner",
+    "target": "PaymentTerm",
+    "label": "paymentTerm",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "BusinessPartner",
+    "target": "PaymentType",
+    "label": "paymentType",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "BusinessPartner",
+    "target": "PriceList",
+    "label": "priceList",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "BusinessPartner",
+    "target": "Person",
+    "label": "salesPersons",
+    "cardinality": "N:M"
+  },
+  {
+    "source": "BusinessPartner",
+    "target": "ShippingType",
+    "label": "shippingType",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Case",
+    "target": "BusinessPartner",
+    "label": "BusinessPartner",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Case",
+    "target": "CaseOrigin",
+    "label": "caseOrigin",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Case",
+    "target": "CaseType",
+    "label": "caseType",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Case",
+    "target": "Contact",
+    "label": "contact",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Case",
+    "target": "ServiceCall",
+    "label": "ServiceCalls",
+    "cardinality": "1:N"
+  },
+  {
+    "source": "ChecklistAssignment",
+    "target": "Person",
+    "label": "responsiblePerson",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "ChecklistAssignment",
+    "target": "ChecklistTemplate",
+    "label": "template",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "ChecklistInstance",
+    "target": "Person",
+    "label": "responsiblePerson",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "ChecklistInstance",
+    "target": "ChecklistTemplate",
+    "label": "template",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Configuration",
+    "target": "Person",
+    "label": "persons",
+    "cardinality": "1:N"
+  },
+  {
+    "source": "CreditNote",
+    "target": "BusinessPartner",
+    "label": "BusinessPartner",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "CreditNote",
+    "target": "Person",
+    "label": "salesPerson",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "CreditNote",
+    "target": "Address",
+    "label": "billingAddress",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "CreditNote",
+    "target": "Address",
+    "label": "shippingAddress",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Equipment",
+    "target": "BusinessPartner",
+    "label": "BusinessPartner",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Equipment",
+    "target": "Contact",
+    "label": "contact",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Equipment",
+    "target": "Item",
+    "label": "item",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Equipment",
+    "target": "Person",
+    "label": "responsible",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Equipment",
+    "target": "SerialNumber",
+    "label": "serialNumber2",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Expense",
+    "target": "Tax",
+    "label": "tax",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Expense",
+    "target": "ExpenseType",
+    "label": "type",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Item",
+    "target": "BusinessPartner",
+    "label": "vendors",
+    "cardinality": "N:M"
+  },
+  {
+    "source": "ItemPriceListAssignment",
+    "target": "Item",
+    "label": "item",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "ItemPriceListAssignment",
+    "target": "PriceList",
+    "label": "priceList",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Material",
+    "target": "Item",
+    "label": "item",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Material",
+    "target": "SerialNumber",
+    "label": "serialNumbers",
+    "cardinality": "1:N"
+  },
+  {
+    "source": "Material",
+    "target": "Warehouse",
+    "label": "warehouse",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Material",
+    "target": "Equipment",
+    "label": "equipment",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Mileage",
+    "target": "MileageType",
+    "label": "type",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Person",
+    "target": "Address",
+    "label": "address",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Person",
+    "target": "BusinessPartner",
+    "label": "BusinessPartner",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Person",
+    "target": "Person",
+    "label": "manager",
+    "cardinality": "Self"
+  },
+  {
+    "source": "Person",
+    "target": "Person",
+    "label": "refId",
+    "cardinality": "Self"
+  },
+  {
+    "source": "PersonReservation",
+    "target": "BusinessPartner",
+    "label": "BusinessPartner",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "PersonReservation",
+    "target": "Person",
+    "label": "person",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "PersonReservation",
+    "target": "Person",
+    "label": "persons",
+    "cardinality": "N:M"
+  },
+  {
+    "source": "PersonReservation",
+    "target": "Team",
+    "label": "team",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "PersonReservation",
+    "target": "PersonReservationType",
+    "label": "type",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Project",
+    "target": "BusinessPartner",
+    "label": "BusinessPartner",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Project",
+    "target": "Equipment",
+    "label": "equipment",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Project",
+    "target": "Person",
+    "label": "responsible",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "Project",
+    "target": "Team",
+    "label": "team",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "ProjectPhase",
+    "target": "Project",
+    "label": "project",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "ProjectPhase",
+    "target": "ProjectPhase",
+    "label": "parent",
+    "cardinality": "Self"
+  },
+  {
+    "source": "ProjectPhase",
+    "target": "ServiceCall",
+    "label": "ServiceCall",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "SalesOpportunity",
+    "target": "BusinessPartner",
+    "label": "BusinessPartner",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "SalesOpportunity",
+    "target": "Category",
+    "label": "category",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "SalesOpportunity",
+    "target": "Industry",
+    "label": "industry",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "SalesOpportunity",
+    "target": "Person",
+    "label": "salesPerson",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "SalesOrder",
+    "target": "BusinessPartner",
+    "label": "BusinessPartner",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "SalesOrder",
+    "target": "Person",
+    "label": "salesPerson",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "SalesOrder",
+    "target": "Address",
+    "label": "billingAddress",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "SalesOrder",
+    "target": "Address",
+    "label": "shippingAddress",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "ServiceAssignment",
+    "target": "Activity",
+    "label": "activity",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "ServiceAssignment",
+    "target": "Person",
+    "label": "technician",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "ServiceCall",
+    "target": "BusinessPartner",
+    "label": "BusinessPartner",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "ServiceCall",
+    "target": "Equipment",
+    "label": "equipments",
+    "cardinality": "1:N"
+  },
+  {
+    "source": "ServiceCall",
+    "target": "Person",
+    "label": "leader",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "ServiceCall",
+    "target": "SalesOrder",
+    "label": "SalesOrder",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "ServiceCall",
+    "target": "ServiceContract",
+    "label": "serviceContract",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "ServiceCall",
+    "target": "Person",
+    "label": "technicians",
+    "cardinality": "N:M"
+  },
+  {
+    "source": "ServiceContract",
+    "target": "BusinessPartner",
+    "label": "BusinessPartner",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "ServiceContract",
+    "target": "Person",
+    "label": "owner",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "ServiceContractEquipment",
+    "target": "Equipment",
+    "label": "equipment",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "ServiceContractEquipment",
+    "target": "ServiceContract",
+    "label": "serviceContract",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "TimeEffort",
+    "target": "TimeTask",
+    "label": "task",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "TimeSubTask",
+    "target": "TimeTask",
+    "label": "task",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "UnifiedPerson",
+    "target": "UnifiedPerson",
+    "label": "manager",
+    "cardinality": "Self"
+  },
+  {
+    "source": "UnifiedPerson",
+    "target": "UnifiedPerson",
+    "label": "refId",
+    "cardinality": "Self"
+  },
+  {
+    "source": "UnifiedPerson",
+    "target": "BusinessPartner",
+    "label": "BusinessPartner",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "UnifiedPerson",
+    "target": "Person",
+    "label": "salesEmployee",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "WorkTime",
+    "target": "Person",
+    "label": "person",
+    "cardinality": "N:1"
+  },
+  {
+    "source": "WorkTime",
+    "target": "WorkTimeTask",
+    "label": "task",
+    "cardinality": "N:1"
+  }
+];
+
+        // State
+        let entityPositions = {};
+        let originalPositions = {}; // Store original positions for reset
+        let selectedEntity = null;
+        let isDragging = false;
+        let dragEntity = null;
+        let dragOffset = { x: 0, y: 0 };
+        let autoArrange = false;
+
+        // Initialize
+        const canvas = document.getElementById('canvas');
+        const svg = document.getElementById('svg');
+        const info = document.getElementById('info');
+        const search = document.getElementById('search');
+        const autoArrangeCheckbox = document.getElementById('autoArrange');
+
+        // Create initial layout
+        function createInitialLayout() {
+            const cols = Math.ceil(Math.sqrt(entities.length));
+            const spacing = 200;
+            const offsetX = 400;
+            const offsetY = 150;
+
+            entities.forEach((entity, index) => {
+                const row = Math.floor(index / cols);
+                const col = index % cols;
+
+                const position = {
+                    x: offsetX + col * spacing,
+                    y: offsetY + row * spacing
+                };
+
+                entityPositions[entity] = { ...position };
+                originalPositions[entity] = { ...position }; // Store original
+            });
+        }
+
+        // Toggle auto-arrange
+        function toggleAutoArrange() {
+            autoArrange = autoArrangeCheckbox.checked;
+
+            // If auto-arrange is enabled and an entity is selected, rearrange immediately
+            if (autoArrange && selectedEntity) {
+                arrangeRadially(selectedEntity);
+            }
+        }
+
+        // Arrange entities in radial pattern around selected entity
+        function arrangeRadially(centerEntity) {
+            // Find connected entities
+            const connectedEntities = new Set();
+
+            relationships.forEach(rel => {
+                if (rel.source === centerEntity) {
+                    connectedEntities.add(rel.target);
+                }
+                if (rel.target === centerEntity) {
+                    connectedEntities.add(rel.source);
+                }
+            });
+
+            // Get viewport center
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+
+            // Move selected entity to center
+            entityPositions[centerEntity] = {
+                x: centerX - 60, // 60 is half of entity width
+                y: centerY - 30  // 30 is half of entity height
+            };
+
+            // Arrange connected entities in a circle around the center
+            const connectedArray = Array.from(connectedEntities);
+            const radius = 300; // Distance from center
+            const angleStep = (2 * Math.PI) / Math.max(connectedArray.length, 1);
+
+            connectedArray.forEach((entity, index) => {
+                const angle = index * angleStep - Math.PI / 2; // Start from top
+                entityPositions[entity] = {
+                    x: centerX - 60 + radius * Math.cos(angle),
+                    y: centerY - 30 + radius * Math.sin(angle)
+                };
+            });
+
+            // Move unconnected entities to the periphery (further away)
+            const unconnectedEntities = entities.filter(e => 
+                e !== centerEntity && !connectedEntities.has(e)
+            );
+
+            const outerRadius = 600;
+            const outerAngleStep = (2 * Math.PI) / Math.max(unconnectedEntities.length, 1);
+
+            unconnectedEntities.forEach((entity, index) => {
+                const angle = index * outerAngleStep;
+                entityPositions[entity] = {
+                    x: centerX - 60 + outerRadius * Math.cos(angle),
+                    y: centerY - 30 + outerRadius * Math.sin(angle)
+                };
+            });
+
+            renderEntities();
+            renderConnections();
+            applySelectionVisuals(centerEntity);
+        }
+
+        // Reset to original positions
+        function resetToOriginal() {
+            // Copy original positions back
+            entities.forEach(entity => {
+                entityPositions[entity] = { ...originalPositions[entity] };
+            });
+
+            renderEntities();
+            renderConnections();
+
+            // Reapply selection if exists
+            if (selectedEntity) {
+                applySelectionVisuals(selectedEntity);
+            }
+        }
+
+        // Render entities
+        function renderEntities() {
+            // Clear existing entities
+            document.querySelectorAll('.entity').forEach(el => el.remove());
+
+            entities.forEach(entity => {
+                const pos = entityPositions[entity];
+                const div = document.createElement('div');
+                div.className = 'entity';
+                div.id = 'entity-' + entity.replace(/\s+/g, '-');
+                div.style.left = pos.x + 'px';
+                div.style.top = pos.y + 'px';
+
+                // Count connections
+                const outgoing = relationships.filter(r => r.source === entity).length;
+                const incoming = relationships.filter(r => r.target === entity).length;
+
+                div.innerHTML = `
+                    <div class="entity-name">${entity}</div>
+                    <div class="entity-connections">${outgoing + incoming} connections</div>
+                `;
+
+                // Event listeners
+                div.addEventListener('mousedown', (e) => startDrag(e, entity));
+                div.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectEntity(entity);
+                });
+
+                canvas.appendChild(div);
+            });
+        }
+
+        // Render connections
+        function renderConnections() {
+            svg.innerHTML = '';
+
+            relationships.forEach(rel => {
+                const sourcePos = entityPositions[rel.source];
+                const targetPos = entityPositions[rel.target];
+
+                if (!sourcePos || !targetPos) return;
+
+                // Calculate center points
+                const x1 = sourcePos.x + 60;
+                const y1 = sourcePos.y + 30;
+                const x2 = targetPos.x + 60;
+                const y2 = targetPos.y + 30;
+
+                // Create line
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', x1);
+                line.setAttribute('y1', y1);
+                line.setAttribute('x2', x2);
+                line.setAttribute('y2', y2);
+                line.classList.add('connection-line');
+                line.id = 'line-' + rel.source + '-' + rel.target;
+
+                // Color by cardinality
+                if (rel.cardinality === '1:N') {
+                    line.style.stroke = '#48bb78';
+                } else if (rel.cardinality === 'N:M') {
+                    line.style.stroke = '#ed8936';
+                } else if (rel.cardinality === 'Self') {
+                    line.style.stroke = '#9f7aea';
+                }
+
+                svg.appendChild(line);
+            });
+        }
+
+        // Drag functionality
+        function startDrag(e, entity) {
+            if (e.button !== 0) return; // Only left click
+
+            isDragging = true;
+            dragEntity = entity;
+            const pos = entityPositions[entity];
+            dragOffset = {
+                x: e.clientX - pos.x,
+                y: e.clientY - pos.y
+            };
+
+            e.preventDefault();
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging && dragEntity) {
+                entityPositions[dragEntity] = {
+                    x: e.clientX - dragOffset.x,
+                    y: e.clientY - dragOffset.y
+                };
+                renderEntities();
+                renderConnections();
+
+                // Reapply selection state if entity is selected
+                if (selectedEntity === dragEntity) {
+                    applySelectionVisuals(selectedEntity);
+                }
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            dragEntity = null;
+        });
+
+        // Selection functionality with dimming
+        function selectEntity(entity) {
+            selectedEntity = entity;
+
+            // If auto-arrange is enabled, rearrange entities
+            if (autoArrange) {
+                arrangeRadially(entity);
+            } else {
+                applySelectionVisuals(entity);
+            }
+
+            showInfo(entity);
+        }
+
+        function applySelectionVisuals(entity) {
+            // Clear all states first
+            document.querySelectorAll('.entity').forEach(el => {
+                el.classList.remove('selected', 'highlighted', 'dimmed');
+            });
+
+            document.querySelectorAll('.connection-line').forEach(line => {
+                line.classList.remove('highlighted', 'dimmed');
+            });
+
+            // Find related entities
+            const relatedEntities = new Set();
+            const connectedLines = new Set();
+
+            relationships.forEach(rel => {
+                if (rel.source === entity) {
+                    relatedEntities.add(rel.target);
+                    connectedLines.add('line-' + rel.source + '-' + rel.target);
+                }
+                if (rel.target === entity) {
+                    relatedEntities.add(rel.source);
+                    connectedLines.add('line-' + rel.source + '-' + rel.target);
+                }
+            });
+
+            // Apply styling to all entities
+            entities.forEach(ent => {
+                const entityEl = document.getElementById('entity-' + ent.replace(/\s+/g, '-'));
+                if (!entityEl) return;
+
+                if (ent === entity) {
+                    // Selected entity
+                    entityEl.classList.add('selected');
+                } else if (relatedEntities.has(ent)) {
+                    // Connected entities
+                    entityEl.classList.add('highlighted');
+                } else {
+                    // Unconnected entities - DIM THEM
+                    entityEl.classList.add('dimmed');
+                }
+            });
+
+            // Apply styling to all lines
+            document.querySelectorAll('.connection-line').forEach(line => {
+                if (connectedLines.has(line.id)) {
+                    line.classList.add('highlighted');
+                } else {
+                    line.classList.add('dimmed');
+                }
+            });
+        }
+
+        function showInfo(entity) {
+            const outgoingRels = relationships.filter(r => r.source === entity);
+            const incomingRels = relationships.filter(r => r.target === entity);
+
+            document.getElementById('info-title').textContent = entity;
+
+            let content = '';
+
+            if (outgoingRels.length > 0) {
+                content += '<h5 style="margin-top: 10px; color: #2d3748;">Outgoing Relationships:</h5><ul>';
+                outgoingRels.forEach(rel => {
+                    content += `<li>[${rel.cardinality}] ${rel.label} → ${rel.target}</li>`;
+                });
+                content += '</ul>';
+            }
+
+            if (incomingRels.length > 0) {
+                content += '<h5 style="margin-top: 10px; color: #2d3748;">Incoming Relationships:</h5><ul>';
+                incomingRels.forEach(rel => {
+                    content += `<li>[${rel.cardinality}] ${rel.label} ← ${rel.source}</li>`;
+                });
+                content += '</ul>';
+            }
+
+            document.getElementById('info-content').innerHTML = content;
+            info.classList.add('visible');
+        }
+
+        function clearSelection() {
+            selectedEntity = null;
+            document.querySelectorAll('.entity').forEach(el => {
+                el.classList.remove('selected', 'highlighted', 'dimmed');
+            });
+            document.querySelectorAll('.connection-line').forEach(line => {
+                line.classList.remove('highlighted', 'dimmed');
+            });
+            info.classList.remove('visible');
+        }
+
+        // Search functionality
+        search.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+
+            if (!query) {
+                // Clear search state
+                if (!selectedEntity) {
+                    document.querySelectorAll('.entity').forEach(el => {
+                        el.style.opacity = '1';
+                        el.style.transform = 'scale(1)';
+                    });
+                }
+                return;
+            }
+
+            document.querySelectorAll('.entity').forEach(el => {
+                const name = el.querySelector('.entity-name').textContent.toLowerCase();
+                if (name.includes(query)) {
+                    el.style.opacity = '1';
+                    el.style.transform = 'scale(1.1)';
+                } else {
+                    el.style.opacity = '0.3';
+                    el.style.transform = 'scale(1)';
+                }
+            });
+        });
+
+        // Click on canvas to clear selection
+        canvas.addEventListener('click', (e) => {
+            if (e.target === canvas || e.target === svg) {
+                clearSelection();
+            }
+        });
+
+        // Initialize
+        createInitialLayout();
+        renderEntities();
+        renderConnections();
+
+        console.log('ER Diagram loaded:', entities.length, 'entities,', relationships.length, 'relationships');
+    </script>
+</body>
+</html>
