@@ -14,14 +14,24 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            overflow: hidden;
+            overflow: auto;
+            cursor: grab;
+            width: 100%;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        body.grabbing {
+            cursor: grabbing;
         }
 
         #canvas {
-            width: 100vw;
-            height: 100vh;
             position: relative;
             cursor: grab;
+            transition: transform 0.3s ease;
+            width: 100%;
+            height: 100%;
         }
 
         #canvas.grabbing {
@@ -84,8 +94,8 @@
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            min-width: 100%;
+            min-height: 100%;
             pointer-events: none;
             z-index: 1;
         }
@@ -124,6 +134,7 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             z-index: 10000;
             max-width: 300px;
+            cursor: default;
         }
 
         #controls h3 {
@@ -177,6 +188,7 @@
             max-height: 300px;
             overflow-y: auto;
             display: none;
+            cursor: default;
         }
 
         #info.visible {
@@ -248,6 +260,7 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             z-index: 10000;
             font-size: 12px;
+            cursor: default;
         }
 
         #legend h4 {
@@ -267,6 +280,188 @@
             height: 3px;
             margin-right: 8px;
             background: #a0aec0;
+        }
+
+        .entity-icon {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 16px;
+            height: 16px;
+            background: #4299e1;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            z-index: 15;
+        }
+
+        .entity-icon:hover {
+            background: #3182ce;
+            transform: scale(1.1);
+        }
+
+        .fields-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 2px solid #4a5568;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            z-index: 20000;
+            max-width: 600px;
+            max-height: 80vh;
+            width: 90%;
+            display: none;
+        }
+
+        .fields-popup.show {
+            display: block;
+        }
+
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 2px solid #e2e8f0;
+            background: #f7fafc;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .popup-title-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .popup-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+            margin: 0;
+        }
+
+        .popup-version {
+            font-size: 12px;
+            color: #718096;
+            background: #e2e8f0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
+        }
+
+        .popup-close {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            min-width: 30px;
+            min-height: 30px;
+            max-width: 30px;
+            max-height: 30px;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: normal;
+            font-family: Arial, sans-serif;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            margin: 0;
+            transition: background 0.2s ease;
+            flex-shrink: 0;
+            box-sizing: border-box;
+        }
+
+        .popup-close:hover {
+            background: #c53030;
+        }
+
+        .popup-description {
+            padding: 16px 20px;
+            color: #4a5568;
+            font-size: 13px;
+            line-height: 1.4;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f9fafb;
+        }
+
+        .popup-content {
+            padding: 16px 20px;
+            overflow-y: auto;
+            max-height: 50vh;
+        }
+
+        .fields-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .field-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .field-item:last-child {
+            border-bottom: none;
+        }
+
+        .field-name {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 13px;
+            flex: 1;
+            margin-right: 12px;
+        }
+
+        .field-details {
+            text-align: right;
+            font-size: 11px;
+            color: #718096;
+            flex: 1;
+        }
+
+        .field-type {
+            background: #e6fffa;
+            color: #234e52;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 500;
+            display: inline-block;
+            margin-bottom: 2px;
+        }
+
+        .field-max-length {
+            color: #805ad5;
+        }
+
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 19000;
+            display: none;
+        }
+
+        .popup-overlay.show {
+            display: block;
         }
     </style>
 </head>
@@ -315,7 +510,30 @@
         <svg id="svg"></svg>
     </div>
 
+    <!-- Fields Popup -->
+    <div class="popup-overlay" id="popup-overlay"></div>
+    <div class="fields-popup" id="fields-popup">
+        <div class="popup-header">
+            <div class="popup-title-container">
+                <h3 class="popup-title" id="popup-entity-name">Entity Name</h3>
+                <span class="popup-version" id="popup-version">v1.0</span>
+            </div>
+            <button class="popup-close" id="popup-close">✖</button>
+        </div>
+        <div class="popup-description" id="popup-description">
+            Entity description will appear here.
+        </div>
+        <div class="popup-content">
+            <ul class="fields-list" id="fields-list">
+                <!-- Fields will be populated dynamically -->
+            </ul>
+        </div>
+    </div>
+
     <script>
+        // Embedded field data
+        const entityFields = {"Activity":{"version":"v43","description":"Activities are used for meetings, service tasks, and appointments to store reminders, dates, and notes (e.g., after customer visits or calls). They can be linked to various objects like Opportunities, Service Calls, Sales Orders, or Business Partners.","fields":[{"name":"activityTemplate","data-type":"Identifier","reference":{"object":"ActivityTemplate"}},{"name":"address","data-type":"Identifier","reference":{"object":"Address"}},{"name":"autoSchedulingError","data-type":"String"},{"name":"autoSchedulingStatus","data-type":"AutoSchedulingStatus"},{"name":"businessPartner","data-type":"Identifier","reference":{"object":"BusinessPartner"}},{"name":"businessProcessStepAssignments","data-type":"List<BusinessProcessStepAssignmentEmbedded>"},{"name":"cancellationReason","data-type":"String"},{"name":"changelog","data-type":"String"},{"name":"checkedOut","data-type":"Boolean"},{"name":"code","data-type":"String"},{"name":"crew","data-type":"Identifier","reference":{"object":"Crew"}},{"name":"dueDateTime","data-type":"DateTime"},{"name":"durationInMinutes","data-type":"Integer"},{"name":"earliestStartDateTime","data-type":"DateTime"},{"name":"endDateTime","data-type":"DateTime"},{"name":"equipment","data-type":"Identifier","reference":{"object":"Equipment"}},{"name":"executionStage","data-type":"String","reference":{"enumType":"ACTIVITY_EXECUTION_ST"}},{"name":"hazardType","data-type":"HazardType"},{"name":"internalRemarks","data-type":"String"},{"name":"internalRemarks2","data-type":"String"},{"name":"latestStartDateTime","data-type":"DateTime"},{"name":"milestone","data-type":"Boolean"},{"name":"number","data-type":"String"},{"name":"object","data-type":"ObjectRef"},{"name":"originActivity","data-type":"Identifier","reference":{"object":"Activity"}},{"name":"personal","data-type":"boolean"},{"name":"plannedDurationInMinutes","data-type":"Integer"},{"name":"plannedDurationType","data-type":"PlannedDurationType"},{"name":"predecessorActivities","data-type":"List<Identifier>","reference":{"object":"Activity"}},{"name":"previousActivity","data-type":"Identifier","reference":{"object":"Activity"}},{"name":"project","data-type":"Identifier","reference":{"object":"Project"}},{"name":"projectOrdinal","data-type":"BigDecimal"},{"name":"projectPhase","data-type":"Identifier","reference":{"object":"ProjectPhase"}},{"name":"region","data-type":"Identifier","reference":{"object":"Region"}},{"name":"remarks","data-type":"String"},{"name":"reminderDateTime","data-type":"DateTime"},{"name":"responsibles","data-type":"Set<Identifier>","reference":{"object":"Person"}},{"name":"scope","data-type":"String"},{"name":"serviceProduct","data-type":"Identifier","reference":{"object":"Item"}},{"name":"serviceWorkflow","data-type":"Identifier","reference":{"object":"ServiceWorkflow"}},{"name":"shift","data-type":"Identifier","reference":{"object":"Shift"}},{"name":"sourceActivity","data-type":"Identifier","reference":{"object":"Activity"}},{"name":"startDateTime","data-type":"DateTime"},{"name":"status","data-type":"String","reference":{"enumType":"ACTIVITY_STATUS"}},{"name":"subType","data-type":"Identifier","reference":{"object":"ActivitySubType"}},{"name":"subject","data-type":"String"},{"name":"supportingPersons","data-type":"Set<Identifier>","reference":{"object":"Person"}},{"name":"team","data-type":"Identifier","reference":{"object":"Team"}},{"name":"timeZoneId","data-type":"String"},{"name":"topic","data-type":"Identifier","reference":{"object":"ActivityTopic"}},{"name":"travelTimeFromInMinutes","data-type":"Integer"},{"name":"travelTimeToInMinutes","data-type":"Integer"},{"name":"type","data-type":"String","reference":{"enumType":"ACTIVITY_TYPE"}},{"name":"useAllEquipments","data-type":"Boolean"}]},"ActivityCode":{"version":"v15","description":"Provides information about activity code supporting activity code hierarchies.","fields":[{"name":"code","data-type":"String","max-length":512},{"name":"description","data-type":"String","max-length":"2048 MB"},{"name":"items","data-type":"Set<Identifier>","reference":{"object":"Item"}},{"name":"longDescription","data-type":"String","max-length":255},{"name":"parentActivityCode","data-type":"Identifier","reference":{"object":"ActivityCode"}},{"name":"value","data-type":"String","max-length":512}]},"ActivityFeedback":{"version":"v13","description":"Used to represent a feedback on the activity.","fields":[{"name":"activity","data-type":"Identifier","reference":{"object":"Activity"}},{"name":"activityCodes","data-type":"List<Identifier>","reference":{"object":"ActivityCode"}},{"name":"composedCode","data-type":"String","max-length":2048},{"name":"equipment","data-type":"Identifier","reference":{"object":"Equipment"}},{"name":"externalText","data-type":"String","max-length":"2048 MB"},{"name":"internal","data-type":"Boolean"},{"name":"internalRemarks","data-type":"String"}]},"ActivitySubType":{"version":"v16","description":"The object used to represent the available activity sub types available in the system.","fields":[{"name":"code","data-type":"String","max-length":512},{"name":"name","data-type":"String","max-length":512}]},"ActivityTemplate":{"version":"v13","description":null,"fields":[{"name":"activityNumber","data-type":"String","max-length":512},{"name":"activityTopic","data-type":"Identifier","reference":{"object":"ActivityTopic"}},{"name":"checklistTemplates","data-type":"List<Identifier>","reference":{"object":"ChecklistTemplate"}},{"name":"code","data-type":"String","max-length":512},{"name":"condition","data-type":"String","max-length":255},{"name":"equipment","data-type":"Identifier","reference":{"object":"Equipment"}},{"name":"files","data-type":"List<Identifier>","reference":{"object":"File"}},{"name":"subject","data-type":"String","max-length":255}]},"ActivityTopic":{"version":"v16","description":"The object used to represent the available activity topics available in the system.","fields":[{"name":"code","data-type":"String","max-length":512},{"name":"name","data-type":"String","max-length":512},{"name":"subtype","data-type":"Identifier","reference":{"object":"ActivitySubType"}}]},"Address":{"version":"v22","description":"The address object is used to store all addresses which are available. Addresses consist of the known properties and are referenced to their parent object by the object reference. This way each address gets its standard parent object, but can be referenced by certain working objects like activities. In addition we take each address and enrich it with a related location object by asking Google for the corresponding coordinates.","fields":[{"name":"autoResolved","data-type":"Boolean"},{"name":"block","data-type":"String","max-length":128},{"name":"building","data-type":"String","max-length":64},{"name":"city","data-type":"String","max-length":128},{"name":"country","data-type":"String","max-length":128},{"name":"county","data-type":"String","max-length":128},{"name":"defaultAddress","data-type":"boolean"},{"name":"externalAddressId","data-type":"String","max-length":255},{"name":"floor","data-type":"String","max-length":64},{"name":"name","data-type":"String","max-length":128},{"name":"name2","data-type":"String","max-length":128},{"name":"name3","data-type":"String","max-length":128},{"name":"object","data-type":"ObjectRef"},{"name":"postOfficeBox","data-type":"String","max-length":255},{"name":"room","data-type":"String","max-length":64},{"name":"state","data-type":"String","max-length":128},{"name":"street","data-type":"String","max-length":512},{"name":"streetNo","data-type":"String","max-length":255},{"name":"subType","data-type":"AddressSubType"},{"name":"type","data-type":"String","max-length":255,"reference":{"enumType":"ADDRESS_TYPE"}},{"name":"zipCode","data-type":"String","max-length":128}]},"Alert":{"version":"v16","description":"Alerts serve as notifications about the most important information of the day or some system reminders which update every day. This object has a subject, some receivers to deliver the message to.","fields":[{"name":"readBy","data-type":"Set<Identifier>","reference":{"object":"Person"}},{"name":"receivers","data-type":"Set<Identifier>","reference":{"object":"Person"}},{"name":"subject","data-type":"String","max-length":512},{"name":"xmlData","data-type":"String","max-length":"2048 MB"}]},"Approval":{"version":"v15","description":"This object provides the ability to let users approve or decline requests assigned to them. As there are not all objects available on the devices there might exist approval cases we not even considered. We decided to give you a big remarks field, where one can put all the necessary decision information like order lines, discounts, etc.","fields":[{"name":"businessPartner","data-type":"Identifier","reference":{"object":"BusinessPartner"}},{"name":"code","data-type":"String","max-length":256},{"name":"decisionDate","data-type":"DateTime"},{"name":"decisionMaker","data-type":"Identifier","reference":{"object":"Person"}},{"name":"decisionRemarks","data-type":"String","max-length":1024},{"name":"decisionStatus","data-type":"ApprovalDecisionStatus"},{"name":"docEntry","data-type":"String","max-length":256},{"name":"documentDate","data-type":"DateTime"},{"name":"documentStatus","data-type":"String","max-length":512},{"name":"issueDate","data-type":"DateTime"},{"name":"issuer","data-type":"Identifier","reference":{"object":"Person"}},{"name":"issuerRemarks","data-type":"String","max-length":1024},{"name":"object","data-type":"ObjectRef"},{"name":"objectDescription","data-type":"String","max-length":"2048 MB"},{"name":"remarks","data-type":"String","max-length":"2048 MB"},{"name":"subject","data-type":"String","max-length":512},{"name":"type","data-type":"ApprovalType"}]},"Attachment":{"version":"v19","description":"An attachment is a binary file with a name, description, and reference to another object, typically linked to activities. It allows adding photos, audio notes, PDFs, or other documents to share materials like manuals or reports with field teams.","fields":[{"name":"category","data-type":"String","max-length":255,"reference":{"enumType":"ATTACHMENT_CATEGORY"}},{"name":"description","data-type":"String","max-length":"2048 MB"},{"name":"fileContent","data-type":"fileContent"},{"name":"fileName","data-type":"String","max-length":512},{"name":"object","data-type":"ObjectRef"},{"name":"ordinal","data-type":"Integer"},{"name":"sourceObject","data-type":"ObjectRef"},{"name":"title","data-type":"String","max-length":512},{"name":"type","data-type":"ContentType"},{"name":"syncWithErp","data-type":"Boolean"}]},"Batch":{"version":"v12","description":"Batch number is a unique identifier of a batch which groups items (actually \"item pieces\") together.","fields":[{"name":"code","data-type":"String","max-length":512},{"name":"item","data-type":"Identifier","reference":{"object":"Item"}},{"name":"number","data-type":"String","max-length":512},{"name":"size","data-type":"BigDecimal"}]},"BlanketOrder":{"version":"v13","description":"Blanket order represents a document that contains reserved items, i.e. items that are reserved for a business partner and will be delivered later in time.","fields":[{"name":"billingAddress","data-type":"Identifier","reference":{"object":"Address"}},{"name":"blanketOrderItems","data-type":"Set<BlanketOrderItem>"},{"name":"businessPartner","data-type":"Identifier","reference":{"object":"BusinessPartner"}},{"name":"code","data-type":"String","max-length":512},{"name":"contact","data-type":"Identifier","reference":{"object":"Contact"}},{"name":"deliveryDate","data-type":"Date"},{"name":"documentOrigin","data-type":"DocumentOrigin"},{"name":"expenses","data-type":"Monetary"},{"name":"overallDiscount","data-type":"BigDecimal"},{"name":"paymentTermCode","data-type":"String","max-length":512},{"name":"paymentTermName","data-type":"String","max-length":512},{"name":"paymentTypeCode","data-type":"String","max-length":512},{"name":"paymentTypeName","data-type":"String","max-length":512},{"name":"refNo","data-type":"String","max-length":300},{"name":"remarks","data-type":"String","max-length":"2048 MB"},{"name":"salesPerson","data-type":"Identifier","reference":{"object":"Person"}},{"name":"shippingAddress","data-type":"Identifier","reference":{"object":"Address"}},{"name":"shippingTypeCode","data-type":"String","max-length":512},{"name":"shippingTypeName","data-type":"String","max-length":512},{"name":"tax","data-type":"Monetary"},{"name":"totalAmountGross","data-type":"Monetary"},{"name":"totalAmountNet","data-type":"Monetary"},{"name":"usage","data-type":"Identifier","reference":{"object":"Usage","description":"Reference usage of position."}}]},"BusinessPartner":{"version":"v25","description":"This object is a general representation of companies or customers. This is related to the basic system (e.g. SAP B1, SAP ECC, MS Dynamics CRM, ...). The businesspartner type indicates the kind of relationship to this company. For more information about types @see BusinessPartnerType.","fields":[{"name":"additionalName","data-type":"String","max-length":512},{"name":"category","data-type":"String","max-length":255,"reference":{"enumType":"CATEGORY_TYPE"}},{"name":"city","data-type":"String","max-length":128},{"name":"code","data-type":"String","max-length":512},{"name":"country","data-type":"String","max-length":128},{"name":"creditLimit","data-type":"Monetary"},{"name":"crowdType","data-type":"BusinessPartnerCrowdType","reference":{"allowed-values":"NOT_DEFINED, CROWD_PARTNER","description":"Type of business partner in Crowd."}},{"name":"currency","data-type":"String","max-length":3},{"name":"fax","data-type":"String","max-length":128},{"name":"groupCode","data-type":"String","max-length":512},{"name":"groupName","data-type":"String","max-length":512},{"name":"language","data-type":"String","max-length":255},{"name":"mobilePhone","data-type":"String","max-length":128},{"name":"name","data-type":"String","max-length":512},{"name":"officePhone","data-type":"String","max-length":128},{"name":"otherPhone","data-type":"String","max-length":128},{"name":"password","data-type":"String","max-length":512},{"name":"paymentTerm","data-type":"Identifier","reference":{"object":"PaymentTerm","description":"Associated payment term."}},{"name":"paymentType","data-type":"Identifier","reference":{"object":"PaymentType","description":"Link to default payment type."}},{"name":"priceList","data-type":"Identifier","reference":{"object":"PriceList","description":"Specifies the pricelist assigned to this businesspartner. The pricelist is used during creation of sales orders, materials and other objects which allow to choose items to calculate the prices."}},{"name":"remarks","data-type":"String","max-length":"2048 MB"},{"name":"salesPersons","data-type":"Set<Identifier>","reference":{"object":"Person","description":"List of related sales the permission system whenever read/write permission is set to OWN."}},{"name":"shippingType","data-type":"Identifier","reference":{"object":"ShippingType","description":"Link to default shipping type."}},{"name":"type","data-type":"String","max-length":255,"reference":{"enumType":"BUSINESSPARTNER_TYPE"}},{"name":"validityComment","data-type":"String","max-length":512},{"name":"website","data-type":"String","max-length":512}]},"Case":{"version":"v10","description":"Represents a case_, which is a customer issue or problem.","fields":[{"name":"businessPartner","data-type":"Identifier","reference":{"object":"BusinessPartner"}},{"name":"caseOrigin","data-type":"Identifier","reference":{"object":"CaseOrigin"}},{"name":"caseType","data-type":"Identifier","reference":{"object":"CaseType"}},{"name":"changed","data-type":"Boolean"},{"name":"code","data-type":"String","max-length":"2048 MB"},{"name":"contact","data-type":"Identifier","reference":{"object":"Contact"}},{"name":"customer","data-type":"String","max-length":"2048 MB"},{"name":"description","data-type":"String","max-length":"2048 MB"},{"name":"endDateTime","data-type":"DateTime"},{"name":"equipments","data-type":"List<Identifier>","reference":{"object":"Equipment"}},{"name":"notes","data-type":"String","max-length":"2048 MB"},{"name":"priority","data-type":"CasePriority"},{"name":"serviceCalls","data-type":"List<Identifier>","reference":{"object":"ServiceCall"}},{"name":"state","data-type":"CaseState"},{"name":"subject","data-type":"String","max-length":"2048 MB"}]},"CaseOrigin":{"version":"v10","description":"Represents a case origin, which is a customer issue or problem.","fields":[{"name":"code","data-type":"String","max-length":"2048 MB"},{"name":"name","data-type":"String","max-length":"2048 MB"}]},"CaseType":{"version":"v10","description":"Represents a case type, which is a customer issue or problem.","fields":[{"name":"code","data-type":"String","max-length":"2048 MB"},{"name":"name","data-type":"String","max-length":"2048 MB"}]},"Category":{"version":"v18","description":"The object is used to categorize sales opportunities. Category can have a period of validity defined by the corresponding fields.","fields":[{"name":"active","data-type":"Boolean"},{"name":"code","data-type":"String","max-length":512},{"name":"name","data-type":"String","max-length":512},{"name":"validFrom","data-type":"Date"},{"name":"validTo","data-type":"Date"}]},"ChecklistAssignment":{"version":"v15","description":"Link between business object and checklist template.","fields":[{"name":"choosable","data-type":"Boolean"},{"name":"defaultLanguage","data-type":"String","max-length":128},{"name":"object","data-type":"ObjectRef"},{"name":"predefined","data-type":"Boolean"},{"name":"required","data-type":"Boolean"},{"name":"responsiblePerson","data-type":"Identifier","reference":{"object":"Person","description":"User, who has to fill in the checklist."}},{"name":"template","data-type":"Identifier","reference":{"object":"ChecklistTemplate","description":"Checklist template side of the relation."}}]},"ChecklistInstance":{"version":"v20","description":"This object represents an instance of a checklist instance.","fields":[{"name":"closed","data-type":"Boolean"},{"name":"content","data-type":"content"},{"name":"description","data-type":"String","max-length":"2048 MB"},{"name":"language","data-type":"String","max-length":255},{"name":"mandatory","data-type":"Boolean"},{"name":"object","data-type":"ObjectRef"},{"name":"responsiblePerson","data-type":"Identifier","reference":{"object":"Person","description":"Considered by the permission system whenever read/write permission is set to OWN."}},{"name":"template","data-type":"Identifier","reference":{"object":"ChecklistTemplate","description":"The checklist template."}},{"name":"version","data-type":"Integer"},{"name":"dataVersion","data-type":"Integer"}]},"ChecklistTemplate":{"version":"v21","description":"This object represents a checklist template.","fields":[{"name":"checklistCategory","data-type":"Identifier","reference":{"object":"ChecklistCategory","description":"The category which the template belongs to."}},{"name":"checklistTemplateId","data-type":"String","max-length":255},{"name":"defaultLanguage","data-type":"String","max-length":128},{"name":"description","data-type":"String","max-length":"2048 MB"},{"name":"hazardType","data-type":"HazardType","reference":{"allowed-values":"DANGER, WARNING, CAUTION","description":"Hazard property for signal words."}},{"name":"name","data-type":"String","max-length":128},{"name":"status","data-type":"ChecklistTemplateStatus","reference":{"allowed-values":"ACTIVE, INACTIVE, DEVELOPMENT, TRANSLATION","description":"The status of the checklist template. @See ChecklistTemplateStatus."}},{"name":"tag","data-type":"String","max-length":128},{"name":"tags","data-type":"Set<Identifier>","reference":{"object":"ChecklistTag"}},{"name":"version","data-type":"Integer"}]},"Comment":{"version":"v12","description":"The object used to represent comment which can be added to by user to other object types.","fields":[{"name":"emailAddresses","data-type":"List<String>"},{"name":"object","data-type":"ObjectRef"},{"name":"text","data-type":"String","max-length":"2048 MB"},{"name":"type","data-type":"String","max-length":255,"reference":{"enumType":"COMMENT_TYPE"}}]},"Contact":{"version":"v18","description":"Contact represents related persons (e.g. employees) of a business partner.","fields":[{"name":"birthDate","data-type":"Date"},{"name":"code","data-type":"String","max-length":512},{"name":"defaultContact","data-type":"boolean"},{"name":"fax","data-type":"String","max-length":512},{"name":"firstName","data-type":"String","max-length":256},{"name":"gender","data-type":"Gender","reference":{"allowed-values":"MALE, FEMALE, UNKNOWN","description":"The gender."}},{"name":"lastName","data-type":"String","max-length":512},{"name":"mobilePhone","data-type":"String","max-length":128},{"name":"object","data-type":"ObjectRef"},{"name":"officePhone","data-type":"String","max-length":128},{"name":"otherPhone","data-type":"String","max-length":128},{"name":"pager","data-type":"String","max-length":128},{"name":"positionName","data-type":"String","max-length":128},{"name":"profession","data-type":"String","max-length":128},{"name":"remarks","data-type":"String","max-length":"2048 MB"},{"name":"remarks2","data-type":"String","max-length":"2048 MB"},{"name":"skypeName","data-type":"String","max-length":256},{"name":"title","data-type":"String","max-length":128}]},"CreditNote":{"version":"v14","description":"Represents a credit note (A/R) with all the necessary properties including net prices, gross prices and taxes. Credit note (A/R) can only be created on businesspartners of type CUSTOMER and can only contain items with flag \"purchaseItem\", \"salesItem\" set to true.","fields":[{"name":"billingAddress","data-type":"Identifier","reference":{"object":"Address","description":"Reference t billing addre partner."}},{"name":"businessPartner","data-type":"Identifier","reference":{"object":"BusinessPartner","description":"Reference t correspond business pa"}},{"name":"code","data-type":"String","max-length":512},{"name":"contact","data-type":"Identifier","reference":{"object":"Contact","description":"Reference t contact of t business pa"}},{"name":"creditNoteItems","data-type":"Set<CreditNoteItem>"},{"name":"deliveryDate","data-type":"Date"},{"name":"documentOrigin","data-type":"DocumentOrigin","reference":{"allowed-values":"BACKEND_INFORMATION_SERVICE","description":"The origin o document. @ DocumentO for more information"}},{"name":"expenses","data-type":"Monetary"},{"name":"overallDiscount","data-type":"BigDecimal"},{"name":"paymentTermCode","data-type":"String","max-length":512},{"name":"paymentTermName","data-type":"String","max-length":512},{"name":"paymentTypeCode","data-type":"String","max-length":512},{"name":"paymentTypeName","data-type":"String","max-length":512},{"name":"refNo","data-type":"String","max-length":300},{"name":"remarks","data-type":"String","max-length":"2048 MB"},{"name":"salesPerson","data-type":"Identifier","reference":{"object":"Person","description":"Reference t salesperson responsible this docume Considered permission system whe read/write permission to OWN."}},{"name":"shippingAddress","data-type":"Identifier","reference":{"object":"Address","description":"Reference t shipping ad of the busin partner."}},{"name":"shippingTypeCode","data-type":"String","max-length":512},{"name":"shippingTypeName","data-type":"String","max-length":512},{"name":"status","data-type":"CreditNoteStatus","reference":{"allowed-values":"DRAFT, OPEN, APPROVED, CLOSED","description":"The current status. @Se CreditNoteS"}},{"name":"tax","data-type":"Monetary"},{"name":"totalAmountGross","data-type":"Monetary"},{"name":"totalAmountNet","data-type":"Monetary"},{"name":"usage","data-type":"Identifier","reference":{"object":"Usage","description":"Reference t usage of in t position."}}]},"Equipment":{"version":"v24","description":"Equipment is a specific item or machine installed on customer side with a certain address and serial number. The address of an equipment is indicated by a address object which points to the equipment.","fields":[{"name":"businessPartner","data-type":"Identifier","reference":{"object":"BusinessPartner","description":"Business partner reference to which this equipment belongs."}},{"name":"code","data-type":"String","max-length":512},{"name":"contact","data-type":"Identifier","reference":{"object":"Contact","description":"Responsible contact person on business partner side."}},{"name":"globalUniqueId","data-type":"String","max-length":512},{"name":"item","data-type":"Identifier","reference":{"object":"Item","description":"Indicates which item this equipment represents."}},{"name":"manufacturerSerialNumber","data-type":"String","max-length":256},{"name":"name","data-type":"String","max-length":512},{"name":"nameTranslations","data-type":"KeyValueHolderList"},{"name":"objectCategory","data-type":"String","max-length":255,"reference":{"enumType":"EQUIPMENT_OBJECT_CATEGORY"}},{"name":"parentEquipment","data-type":"Identifier","reference":{"object":"Equipment","description":"parent equipment for this one."}},{"name":"remarks","data-type":"String","max-length":"2048 MB"},{"name":"responsible","data-type":"Identifier","reference":{"object":"Person","description":"responsible person reference to which this equipment belongs."}},{"name":"serialNumber","data-type":"String","max-length":256},{"name":"serialNumber2","data-type":"Identifier","reference":{"object":"SerialNumber","description":"Indicates which item this equipment represents."}},{"name":"status","data-type":"String","max-length":255,"reference":{"enumType":"EQUIPMENT_STATUS"}},{"name":"tool","data-type":"Boolean"},{"name":"type","data-type":"String","max-length":255,"reference":{"enumType":"EQUIPMENT_TYPE"}}]},"Expense":{"version":"v17","description":"This object represents expenses during travel like lunch, fuel, etc. Expenses are always assigned to a type which can be personal or per object or general.","fields":[{"name":"chargeOption","data-type":"ChargeOption","reference":{"allowed-values":"CHARGEABLE, NONCHARGEABLE, UNKNOWN","description":"Defines if this time effort can be charged to the customer or not."}},{"name":"code","data-type":"String","max-length":512},{"name":"date","data-type":"Date"},{"name":"externalAmount","data-type":"Monetary"},{"name":"internalAmount","data-type":"Monetary"},{"name":"object","data-type":"ObjectRef"},{"name":"remarks","data-type":"String","max-length":"2048 MB"},{"name":"tax","data-type":"Identifier","reference":{"object":"Tax","description":"Tax applicable for this expense."}},{"name":"type","data-type":"Identifier","reference":{"object":"ExpenseType","description":"Type of the expense. @See ExpenseType."}}]},"ExpenseType":{"version":"v17","description":"This object specifies the available types for an expense.","fields":[{"name":"code","data-type":"String","max-length":512},{"name":"name","data-type":"String","max-length":512}]},"File":{"version":"v12","description":"Represent a meta information for actual file which is modeled with Attachment object.","fields":[{"name":"autoDownloadable","data-type":"Boolean"},{"name":"cacheable","data-type":"Boolean"},{"name":"code","data-type":"String","max-length":255},{"name":"description","data-type":"String","max-length":2048},{"name":"shareable","data-type":"Boolean"},{"name":"title","data-type":"String","max-length":255}]},"Industry":{"version":"v15","description":"Industry is a business object that represents the industry which can be associated with a sales opportunity.","fields":[{"name":"code","data-type":"String","max-length":512},{"name":"industryDescription","data-type":"String","max-length":512},{"name":"industryName","data-type":"String","max-length":512}]},"Item":{"version":"v24","description":"The item object represents the data of the item master data also called articles in some systems.","fields":[{"name":"category","data-type":"Identifier","reference":{"object":"ItemCategory","description":"For internal use only!"}},{"name":"code","data-type":"String","max-length":512},{"name":"eans","data-type":"Set<String>"},{"name":"groupCode","data-type":"String","max-length":512},{"name":"groupName","data-type":"String","max-length":512},{"name":"inventoryItem","data-type":"boolean"},{"name":"itemUrls","data-type":"List<ItemUrl>"},{"name":"managedByBatches","data-type":"Boolean"},{"name":"managedBySerialNumbers","data-type":"Boolean"},{"name":"name","data-type":"String","max-length":512},{"name":"nameTranslations","data-type":"KeyValueHolderList"},{"name":"ordinal","data-type":"Double"},{"name":"properties","data-type":"KeyValueHolderList"},{"name":"purchaseItem","data-type":"boolean"},{"name":"remarks","data-type":"String","max-length":"2048 MB"},{"name":"salesItem","data-type":"boolean"},{"name":"serialNumberItem","data-type":"boolean"},{"name":"typeCode","data-type":"String","max-length":512},{"name":"typeName","data-type":"String","max-length":512},{"name":"unitOfMeasure","data-type":"String","max-length":128},{"name":"vendors","data-type":"Set<Identifier>","reference":{"object":"BusinessPartner","description":"List of available vendors for this item."}}]},"ItemPriceListAssignment":{"version":"v16","description":"Item pricelist assignments are used to make the link between an item and a pricelist by specifying a price and currency. Note: Multiple currency price lists are not supported!","fields":[{"name":"item","data-type":"Identifier","reference":{"object":"Item","description":"The item related to this object."}},{"name":"price","data-type":"Monetary"},{"name":"priceList","data-type":"Identifier","reference":{"object":"PriceList","description":"Associated pricelist for which this price matches."}}]},"Material":{"version":"v22","description":"This object is used while a field technician is working on a service call and needs some material from his car stock. After technician fixes an issue on customer side,he creates a material object for each item used.","fields":[{"name":"chargeOption","data-type":"ChargeOption","reference":{"allowed-values":"CHARGEABLE, NONCHARGEABLE, UNKNOWN","description":"Defines if this tim can be charged t customer or not"}},{"name":"code","data-type":"String","max-length":512},{"name":"date","data-type":"Date"},{"name":"equipment","data-type":"Identifier","reference":{"object":"Equipment","description":"Reference to link equipment objec"}},{"name":"item","data-type":"Identifier","reference":{"object":"Item","description":"Item which was u"}},{"name":"itemName","data-type":"String","max-length":100},{"name":"managedByBatchItems","data-type":"List<ManagedByBatchItem>"},{"name":"object","data-type":"ObjectRef"},{"name":"quantity","data-type":"BigDecimal"},{"name":"remarks","data-type":"String","max-length":"2048 MB"},{"name":"reservedMaterials","data-type":"Set<Identifier>","reference":{"object":"ReservedMaterial","description":"Link to Reserved which was used."}},{"name":"serialNumbers","data-type":"Set<Identifier>","reference":{"object":"SerialNumber","description":"Serial numbers."}},{"name":"unitPrice","data-type":"Monetary"},{"name":"warehouse","data-type":"Identifier","reference":{"object":"Warehouse","description":"Warehouse from the item was tak"}}]},"Mileage":{"version":"v19","description":"This objects is meant to enter mileage for travelling to customer.","fields":[{"name":"chargeOption","data-type":"ChargeOption","reference":{"allowed-values":"CHARGEABLE, NONCHARGEABLE, UNKNOWN","description":"Defines if this mileage can be charged to the customer or not."}},{"name":"code","data-type":"String","max-length":512},{"name":"date","data-type":"Date"},{"name":"destination","data-type":"String","max-length":512},{"name":"distance","data-type":"BigDecimal"},{"name":"distanceUnit","data-type":"DistanceUnit","reference":{"allowed-values":"MILE, KM","description":"Defines units in which #distance is given."}},{"name":"driver","data-type":"boolean"},{"name":"object","data-type":"ObjectRef"},{"name":"privateCar","data-type":"boolean"},{"name":"remarks","data-type":"String","max-length":"2048 MB"},{"name":"source","data-type":"String","max-length":512},{"name":"travelEndDateTime","data-type":"DateTime"},{"name":"travelEndDateTimeTimeZoneId","data-type":"String","max-length":255},{"name":"travelStartDateTime","data-type":"DateTime"},{"name":"travelStartDateTimeTimeZoneId","data-type":"String","max-length":255},{"name":"type","data-type":"Identifier","reference":{"object":"MileageType","description":"What type of travel was it exactly, possibilities can be specified by the system."}}]},"MileageType":{"version":"v16","description":"This object specifies the available types for a mileage.","fields":[{"name":"code","data-type":"String","max-length":512},{"name":"name","data-type":"String","max-length":512},{"name":"object","data-type":"ObjectRef"}]},"PaymentTerm":{"version":"v16","description":"This object represents the terms of payment supported by the combination of system and pricelist. This is used to identify the proper payment terms which are displayed while creating sales orders and other objects which have prices associated.","fields":[{"name":"code","data-type":"String","max-length":512},{"name":"name","data-type":"String","max-length":512},{"name":"priceList","data-type":"Identifier","reference":{"object":"PriceList"}}]},"PaymentType":{"version":"v17","description":"This object represents the types of payment supported by the system.","fields":[{"name":"businessPartnerType","data-type":"String","max-length":255,"reference":{"enumType":"BUSINESSPARTNER_TYPE"}},{"name":"code","data-type":"String","max-length":512},{"name":"name","data-type":"String","max-length":512},{"name":"type","data-type":"PaymentTypeType"}]},"Person":{"version":"v25","description":"Person represents the employees, users or sales employees of a company. A physical person can have up to 3 different entries (ERPUSER, EMPLOYEE, SALESEMPLOYEE) linked through the 'refId' property.","fields":[{"name":"address","data-type":"Identifier","reference":{"object":"Address"}},{"name":"branchCode","data-type":"String","max-length":512},{"name":"branchName","data-type":"String","max-length":512},{"name":"businessPartner","data-type":"Identifier","reference":{"object":"BusinessPartner"}},{"name":"code","data-type":"String","max-length":512},{"name":"crowdType","data-type":"CrowdUserType"},{"name":"departmentCode","data-type":"String","max-length":512},{"name":"departmentName","data-type":"String","max-length":512},{"name":"emailAddress","data-type":"String","max-length":256},{"name":"externalResource","data-type":"Boolean"},{"name":"fax","data-type":"String","max-length":256},{"name":"firstName","data-type":"String","max-length":256},{"name":"homePhone","data-type":"String","max-length":256},{"name":"jobTitle","data-type":"String","max-length":256},{"name":"lastName","data-type":"String","max-length":256},{"name":"locationLastUserChangedDate","data-type":"DateTime"},{"name":"loginEnabled","data-type":"Boolean"},{"name":"manager","data-type":"Identifier","reference":{"object":"Person"}},{"name":"maxDistanceRadius","data-type":"Integer"},{"name":"mobilePhone","data-type":"String","max-length":256},{"name":"officePhone","data-type":"String","max-length":256},{"name":"otherPhone","data-type":"String","max-length":256},{"name":"pager","data-type":"String","max-length":256},{"name":"personStatus","data-type":"PersonStatusEmbeddable"},{"name":"plannableResource","data-type":"boolean"},{"name":"positionCode","data-type":"String","max-length":512},{"name":"positionName","data-type":"String","max-length":512},{"name":"refId","data-type":"Identifier","reference":{"object":"Person"}},{"name":"regions","data-type":"Set<Identifier>","reference":{"object":"Region"}},{"name":"remarks","data-type":"String","max-length":"2048 MB"},{"name":"skills","data-type":"String","max-length":512},{"name":"skypeName","data-type":"String","max-length":256},{"name":"type","data-type":"PersonType"},{"name":"userName","data-type":"String","max-length":256}]},"PersonReservation":{"version":"v21","description":"Person reservation for a specific time and business partner.","fields":[{"name":"address","data-type":"Identifier","reference":{"object":"Address"}},{"name":"businessPartner","data-type":"Identifier","reference":{"object":"BusinessPartner"}},{"name":"changelog","data-type":"String","max-length":"2048 MB"},{"name":"endDate","data-type":"DateTime"},{"name":"endDateTimeFixed","data-type":"Boolean"},{"name":"exclusive","data-type":"boolean"},{"name":"person","data-type":"Identifier","reference":{"object":"Person"}},{"name":"persons","data-type":"List<Identifier>","reference":{"object":"Person"}},{"name":"remarks","data-type":"String","max-length":2048},{"name":"startDate","data-type":"DateTime"},{"name":"startDateTimeFixed","data-type":"Boolean"},{"name":"team","data-type":"Identifier","reference":{"object":"Team"}},{"name":"technicianFixed","data-type":"Boolean"},{"name":"timeZoneId","data-type":"String","max-length":255},{"name":"type","data-type":"Identifier","reference":{"object":"PersonReservationType"}}]},"PersonReservationType":{"version":"v17","description":"Person reservation type which specifies what kind of reservation can be taken in resource planner.","fields":[{"name":"code","data-type":"String","max-length":512},{"name":"color","data-type":"String","max-length":"2048 MB"},{"name":"name","data-type":"String","max-length":512}]},"PriceList":{"version":"v16","description":"Pricelist object which is used to make prices available in items and stock module or during creation of sales documents and materials.","fields":[{"name":"code","data-type":"String","max-length":512},{"name":"name","data-type":"String","max-length":512}]},"Project":{"version":"v13","description":"This object represents the project in the context of a plannable set of discrete tasks. A project contains Phases and Activities.","fields":[{"name":"businessPartner","data-type":"Identifier","reference":{"object":"BusinessPartner"}},{"name":"code","data-type":"String","max-length":512},{"name":"contact","data-type":"Identifier","reference":{"object":"Contact"}},{"name":"description","data-type":"String","max-length":"2048 MB"},{"name":"equipment","data-type":"Identifier","reference":{"object":"Equipment"}},{"name":"projectType","data-type":"String","max-length":255,"reference":{"enumType":"PROJECT_TYPE"}},{"name":"releaseType","data-type":"String","max-length":255,"reference":{"enumType":"RELEASE_TYPE"}},{"name":"responsible","data-type":"Identifier","reference":{"object":"Person"}},{"name":"status","data-type":"ProjectStatus"},{"name":"subject","data-type":"String","max-length":"2048 MB"},{"name":"team","data-type":"Identifier","reference":{"object":"Team"}}]},"ProjectPhase":{"version":"v13","description":"This object represents the Phase of a Project, in the context of Project Management application.","fields":[{"name":"code","data-type":"String","max-length":512},{"name":"name","data-type":"String","max-length":"2048 MB"},{"name":"parent","data-type":"Identifier","reference":{"object":"ProjectPhase"}},{"name":"project","data-type":"Identifier","reference":{"object":"Project"}},{"name":"projectOrdinal","data-type":"BigDecimal"},{"name":"projectPhaseType","data-type":"String","max-length":255,"reference":{"enumType":"PROJECT_PHASE_TYPE"}},{"name":"serviceCall","data-type":"Identifier","reference":{"object":"ServiceCall"}},{"name":"serviceCallDraft","data-type":"ServiceCallDraft"},{"name":"state","data-type":"ProjectPhaseState"}]},"SalesOpportunity":{"version":"v17","description":"SalesOpportunity is a business object that represents the sales opportunity data. It includes potential sale volumes.","fields":[{"name":"businessPartner","data-type":"Identifier","reference":{"object":"BusinessPartner"}},{"name":"category","data-type":"Identifier","reference":{"object":"Category"}},{"name":"closeDate","data-type":"Date"},{"name":"closingPercentage","data-type":"BigDecimal"},{"name":"code","data-type":"String","max-length":512},{"name":"contact","data-type":"Identifier","reference":{"object":"Contact"}},{"name":"industry","data-type":"Identifier","reference":{"object":"Industry"}},{"name":"informationSource","data-type":"Identifier","reference":{"object":"InformationSource"}},{"name":"levelOfInterest","data-type":"Identifier","reference":{"object":"LevelOfInterest"}},{"name":"name","data-type":"String","max-length":512},{"name":"potentialAmount","data-type":"Monetary"},{"name":"predictedClosingDate","data-type":"Date"},{"name":"reasons","data-type":"List<Identifier>","reference":{"object":"Reason"}},{"name":"remarks","data-type":"String","max-length":"2048 MB"},{"name":"salesOpportunityCompetitors","data-type":"List<SalesOpportunityCompetitor>"},{"name":"salesOpportunityStages","data-type":"List<SalesOpportunityStage>"},{"name":"salesPerson","data-type":"Identifier","reference":{"object":"Person"}},{"name":"status","data-type":"SalesOpportunityStatus"},{"name":"weightedAmount","data-type":"Monetary"}]},"SalesOrder":{"version":"v19","description":"Represents a sales order with all the necessary properties, including net prices, gross prices and taxes. SalesOrders can only be created on business partners of type CUSTOMER or LEAD.","fields":[{"name":"billingAddress","data-type":"Identifier","reference":{"object":"Address"}},{"name":"businessPartner","data-type":"Identifier","reference":{"object":"BusinessPartner"}},{"name":"code","data-type":"String","max-length":512},{"name":"contact","data-type":"Identifier","reference":{"object":"Contact"}},{"name":"deliveryDate","data-type":"Date"},{"name":"documentOrigin","data-type":"DocumentOrigin"},{"name":"expenses","data-type":"Monetary"},{"name":"overallDiscount","data-type":"BigDecimal"},{"name":"paymentTermCode","data-type":"String","max-length":512},{"name":"paymentTermName","data-type":"String","max-length":512},{"name":"paymentTypeCode","data-type":"String","max-length":512},{"name":"paymentTypeName","data-type":"String","max-length":512},{"name":"refNo","data-type":"String","max-length":300},{"name":"remarks","data-type":"String","max-length":"2048 MB"},{"name":"salesOrderItems","data-type":"Set<SalesOrderItem>"},{"name":"salesPerson","data-type":"Identifier","reference":{"object":"Person"}},{"name":"shippingAddress","data-type":"Identifier","reference":{"object":"Address"}},{"name":"shippingTypeCode","data-type":"String","max-length":512},{"name":"shippingTypeName","data-type":"String","max-length":512},{"name":"status","data-type":"SalesOrderStatus"},{"name":"tax","data-type":"Monetary"},{"name":"totalAmountGross","data-type":"Monetary"},{"name":"totalAmountNet","data-type":"Monetary"},{"name":"usage","data-type":"Identifier","reference":{"object":"Usage"}}]},"SerialNumber":{"version":"v12","description":"Serial numbers is a unique number that identify an item.","fields":[{"name":"code","data-type":"String","max-length":512},{"name":"item","data-type":"Identifier","reference":{"object":"Item"}},{"name":"lotNumber","data-type":"String","max-length":512},{"name":"manufacturerSerialNumber","data-type":"String","max-length":256},{"name":"serialNumber","data-type":"String","max-length":256},{"name":"warehouse","data-type":"Identifier","reference":{"object":"Warehouse"}},{"name":"warrantyEnd","data-type":"DateTime"},{"name":"warrantyStart","data-type":"DateTime"}]},"ServiceAssignment":{"version":"v30","description":"ServiceAssignment object which allows special assignments of person to a servicecall. This object is available for resource planner only.","fields":[{"name":"activity","data-type":"Identifier","reference":{"object":"Activity"}},{"name":"businessProcessStepAssignments","data-type":"List<BusinessProcessStepAssignmentEmbedded>"},{"name":"changelog","data-type":"String","max-length":"2048 MB"},{"name":"code","data-type":"String","max-length":51},{"name":"confirmed","data-type":"Boolean"},{"name":"crew","data-type":"Identifier","reference":{"object":"Crew"}},{"name":"endDateTime","data-type":"DateTime"},{"name":"endDateTimeFixed","data-type":"Boolean"},{"name":"object","data-type":"ObjectRef"},{"name":"objectGroup","data-type":"Identifier","reference":{"object":"ObjectGroup"}},{"name":"partnerDispatchingStatus","data-type":"PartnerDispatchingStatus"},{"name":"plannedDurationInMinutes","data-type":"Integer"},{"name":"proposed","data-type":"Boolean"},{"name":"recurrencePattern","data-type":"String","max-length":10},{"name":"recurrencePatternLastChanged","data-type":"Long"},{"name":"recurrenceSeriesId","data-type":"Identifier","reference":{"object":"ServiceAssignment"}},{"name":"released","data-type":"Boolean"},{"name":"releasedDateTime","data-type":"DateTime"},{"name":"remarks","data-type":"String","max-length":"2048 MB"},{"name":"sentToTechnicianDateTime","data-type":"DateTime"},{"name":"sourceActivity","data-type":"Identifier","reference":{"object":"Activity"}},{"name":"startDateTime","data-type":"DateTime"},{"name":"startDateTimeFixed","data-type":"Boolean"},{"name":"state","data-type":"String","reference":{"enumType":"SERVICE_ASSIGNMENT_S"}},{"name":"team","data-type":"Identifier","reference":{"object":"Team"}},{"name":"technician","data-type":"Identifier","reference":{"object":"Person"}},{"name":"technicianFixed","data-type":"Boolean"},{"name":"travelTimeFromInMinutes","data-type":"Integer"},{"name":"unit","data-type":"String"}]},"ServiceCall":{"version":"v27","description":"Service call or ticket which indicates a request from customer to a certain problem or service.","fields":[{"name":"businessPartner","data-type":"Identifier","reference":{"object":"BusinessPartner"}},{"name":"changelog","data-type":"String","max-length":"2048 MB"},{"name":"chargeableEfforts","data-type":"boolean"},{"name":"chargeableExpenses","data-type":"boolean"},{"name":"chargeableMaterials","data-type":"boolean"},{"name":"chargeableMileages","data-type":"boolean"},{"name":"code","data-type":"String","max-length":512},{"name":"contact","data-type":"Identifier","reference":{"object":"Contact"}},{"name":"dueDateTime","data-type":"DateTime"},{"name":"durationInMinutes","data-type":"Integer"},{"name":"endDateTime","data-type":"DateTime"},{"name":"equipments","data-type":"List<Identifier>","reference":{"object":"Equipment"}},{"name":"incident","data-type":"Identifier","reference":{"object":"Incident"}},{"name":"leader","data-type":"Identifier","reference":{"object":"Person"}},{"name":"objectGroup","data-type":"Identifier","reference":{"object":"ObjectGroup"}},{"name":"orderDateTime","data-type":"DateTime"},{"name":"orderReference","data-type":"String","max-length":512},{"name":"originCode","data-type":"String","max-length":512},{"name":"originName","data-type":"String","max-length":512},{"name":"partOfRecurrenceSeries","data-type":"Boolean"},{"name":"priority","data-type":"String","max-length":255,"reference":{"enumType":"SERVICE_CALL_PRIORITY"}},{"name":"problemTypeCode","data-type":"String","max-length":512},{"name":"problemTypeName","data-type":"String","max-length":512},{"name":"project","data-type":"Identifier","reference":{"object":"Project"}},{"name":"projectPhase","data-type":"Identifier","reference":{"object":"ProjectPhase"}},{"name":"remarks","data-type":"String","max-length":"2048 MB"},{"name":"resolution","data-type":"String","max-length":"2048 MB"},{"name":"responsibles","data-type":"Set<Identifier>","reference":{"object":"Person"}},{"name":"salesOrder","data-type":"Identifier","reference":{"object":"SalesOrder"}},{"name":"salesQuotation","data-type":"Identifier","reference":{"object":"SalesQuotation"}},{"name":"serviceContract","data-type":"Identifier","reference":{"object":"ServiceContract"}},{"name":"statusCode","data-type":"String","max-length":512},{"name":"statusName","data-type":"String","max-length":512},{"name":"subject","data-type":"String","max-length":512},{"name":"team","data-type":"Identifier","reference":{"object":"Team"}},{"name":"technicians","data-type":"Set<Identifier>","reference":{"object":"Person"}},{"name":"typeCode","data-type":"String","max-length":512},{"name":"typeName","data-type":"String","max-length":512}]},"ServiceContract":{"version":"v14","description":"Contracts are agreements between the Customer and Vendor to supply materials/services for a specific price between a fixed period of time.","fields":[{"name":"businessPartner","data-type":"Identifier","reference":{"object":"BusinessPartner"}},{"name":"code","data-type":"String","max-length":512},{"name":"contact","data-type":"Identifier","reference":{"object":"Contact"}},{"name":"contractType","data-type":"String","max-length":512},{"name":"description","data-type":"String","max-length":512},{"name":"endDate","data-type":"DateTime"},{"name":"frequency","data-type":"UnixCronExpression"},{"name":"includeEffort","data-type":"Boolean"},{"name":"includeExpense","data-type":"Boolean"},{"name":"includeMaterial","data-type":"Boolean"},{"name":"includeMileage","data-type":"Boolean"},{"name":"owner","data-type":"Identifier","reference":{"object":"Person"}},{"name":"recurrenceEndDate","data-type":"Date"},{"name":"recurrenceStartDate","data-type":"Date"},{"name":"remarks","data-type":"String","max-length":255},{"name":"resolutionTime","data-type":"Double"},{"name":"responseTime","data-type":"Double"},{"name":"serviceType","data-type":"String","max-length":512},{"name":"startDate","data-type":"DateTime"},{"name":"status","data-type":"String","max-length":512}]},"ServiceContractEquipment":{"version":"v13","description":"This object represents the relation between service contract and equipment.","fields":[{"name":"endDate","data-type":"DateTime"},{"name":"equipment","data-type":"Identifier","reference":{"object":"Equipment"}},{"name":"frequency","data-type":"UnixCronExpression"},{"name":"recurrenceEndDate","data-type":"Date"},{"name":"recurrenceStartDate","data-type":"Date"},{"name":"serviceContract","data-type":"Identifier","reference":{"object":"ServiceContract"}},{"name":"startDate","data-type":"DateTime"},{"name":"terminationDate","data-type":"DateTime"}]},"ServiceWorkflow":{"version":"v10","description":"Represents the service workflow that is used to process an activity from start to finish.","fields":[{"name":"code","data-type":"String","max-length":255},{"name":"defaultServiceWorkflow","data-type":"Boolean"}]},"ShippingType":{"version":"v16","description":"Represents all shipping types available in the system.","fields":[{"name":"code","data-type":"String","max-length":512},{"name":"name","data-type":"String","max-length":512}]},"Tax":{"version":"v11","description":"Represents tax information.","fields":[{"name":"category","data-type":"String","max-length":255},{"name":"code","data-type":"String","max-length":255},{"name":"name","data-type":"String","max-length":255},{"name":"rates","data-type":"List<Rate>"}]},"Team":{"version":"v15","description":"Specifies the team object. Teams can then be assigned to projects and activities.","fields":[{"name":"description","data-type":"String","max-length":255},{"name":"minCrewSize","data-type":"Integer"},{"name":"name","data-type":"String","max-length":"2048 MB"},{"name":"object","data-type":"ObjectRef"},{"name":"persons","data-type":"Set<Identifier>","reference":{"object":"Person"}},{"name":"timeZoneId","data-type":"String","max-length":255},{"name":"validFromDateTime","data-type":"DateTime"},{"name":"validToDateTime","data-type":"DateTime"}]},"TimeEffort":{"version":"v17","description":"This object represents efforts one does for a specific customer. TimeEfforts can be booked on business partners, sales orders, sales quotations, opportunities, production orders, service calls and time projects.","fields":[{"name":"breakInMinutes","data-type":"int"},{"name":"breakStartDateTime","data-type":"DateTime"},{"name":"breakStartDateTimeTimeZoneId","data-type":"String","max-length":255},{"name":"chargeOption","data-type":"ChargeOption"},{"name":"discount","data-type":"BigDecimal"},{"name":"endDateTime","data-type":"DateTime"},{"name":"endDateTimeTimeZoneId","data-type":"String","max-length":255},{"name":"internalRemarks","data-type":"String","max-length":"2048 MB"},{"name":"object","data-type":"ObjectRef","reference":{"standard-objects":"BUSINESSPARTNER, SALESQUOTATION, SALESORDER, SERVICECALL, OPPORTUNITY, PRODUCTIONORDER, TIMEPROJECT"}},{"name":"remarks","data-type":"String","max-length":"2048 MB"},{"name":"startDateTime","data-type":"DateTime"},{"name":"startDateTimeTimeZoneId","data-type":"String","max-length":255},{"name":"subTask","data-type":"Identifier","reference":{"object":"TimeSubTask"}},{"name":"task","data-type":"Identifier","reference":{"object":"TimeTask"}},{"name":"timeZoneId","data-type":"String","max-length":255},{"name":"totalPrice","data-type":"Monetary"},{"name":"unitPrice","data-type":"Monetary"}]},"TimeSubTask":{"version":"v16","description":"Represents a sub time task.","fields":[{"name":"code","data-type":"String","max-length":512},{"name":"name","data-type":"String","max-length":512},{"name":"object","data-type":"ObjectRef","reference":{"standard-values":"BUSINESSPARTNER, SALESQUOTATION, SALESORDER, SERVICECALL, OPPORTUNITY, PRODUCTIONORDER, PERSON, TIMEPROJECT"}},{"name":"task","data-type":"Identifier","reference":{"object":"TimeTask"}}]},"TimeTask":{"version":"v19","description":"TimeTasks specify the work one has done on customer side like a work process, type of service, or some specific ways of this.","fields":[{"name":"code","data-type":"String","max-length":512},{"name":"item","data-type":"Identifier","reference":{"object":"Item"}},{"name":"matchCode","data-type":"String","max-length":512},{"name":"name","data-type":"String","max-length":512},{"name":"object","data-type":"ObjectRef","reference":{"standard-values":"BUSINESSPARTNER, SALESQUOTATION, SALESORDER, SERVICECALL, OPPORTUNITY, PRODUCTIONORDER, PERSON, TIMEPROJECT"}}]},"UnifiedPerson":{"version":"v13","description":"The unified person object, designed to unify multiple Person records (Employee, ErpUser, Salesemployee) into a single record.","fields":[{"name":"branchCode","data-type":"String","max-length":512},{"name":"branchName","data-type":"String","max-length":512},{"name":"businessPartner","data-type":"Identifier","reference":{"object":"BusinessPartner"}},{"name":"code","data-type":"String","max-length":512},{"name":"departmentCode","data-type":"String","max-length":512},{"name":"departmentName","data-type":"String","max-length":512},{"name":"emailAddress","data-type":"String","max-length":256},{"name":"externalResource","data-type":"Boolean"},{"name":"fax","data-type":"String","max-length":256},{"name":"firstName","data-type":"String","max-length":256},{"name":"homePhone","data-type":"String","max-length":256},{"name":"jobTitle","data-type":"String","max-length":256},{"name":"lastName","data-type":"String","max-length":256},{"name":"locationLastUserChangedDate","data-type":"DateTime"},{"name":"loginEnabled","data-type":"Boolean"},{"name":"manager","data-type":"Identifier","reference":{"object":"UnifiedPerson"}},{"name":"maxDistanceRadius","data-type":"Integer"},{"name":"mobilePhone","data-type":"String","max-length":256},{"name":"officePhone","data-type":"String","max-length":256},{"name":"otherPhone","data-type":"String","max-length":256},{"name":"pager","data-type":"String","max-length":256},{"name":"personStatus","data-type":"UnifiedPersonStatus"},{"name":"plannableResource","data-type":"boolean"},{"name":"positionCode","data-type":"String","max-length":512},{"name":"positionName","data-type":"String","max-length":512},{"name":"refId","data-type":"Identifier","reference":{"object":"UnifiedPerson"}},{"name":"regions","data-type":"Set<Identifier>","reference":{"object":"Region"}},{"name":"remarks","data-type":"String","max-length":"2048 MB"},{"name":"salesEmployee","data-type":"Identifier","reference":{"object":"Person"}},{"name":"skypeName","data-type":"String","max-length":256},{"name":"types","data-type":"Set<PersonType>"},{"name":"userName","data-type":"String","max-length":256},{"name":"crowdType","data-type":"CrowdUserType"}]},"Warehouse":{"version":"v17","description":"Warehouse object from which a technician can take its material or which is considered to indicate if an item is in stock or not.","fields":[{"name":"code","data-type":"String","max-length":512},{"name":"name","data-type":"String","max-length":512},{"name":"reservedMaterialWarehouse","data-type":"Boolean"}]},"WorkTime":{"version":"v17","description":"Work times are used to let the user enter the time he worked overall, not related to any services or customer support he did - it is just the come and leave statement including a break.","fields":[{"name":"breakInMinutes","data-type":"int"},{"name":"breakStartDateTime","data-type":"DateTime"},{"name":"breakStartDateTimeTimeZoneId","data-type":"String","max-length":255},{"name":"endDateTime","data-type":"DateTime"},{"name":"endDateTimeTimeZoneId","data-type":"String","max-length":255},{"name":"person","data-type":"Identifier","reference":{"object":"Person"}},{"name":"remarks","data-type":"String","max-length":"2048 MB"},{"name":"startDateTime","data-type":"DateTime"},{"name":"startDateTimeTimeZoneId","data-type":"String","max-length":255},{"name":"task","data-type":"Identifier","reference":{"object":"WorkTimeTask"}},{"name":"timeZoneId","data-type":"String","max-length":255}]},"WorkTimeTask":{"version":"v17","description":"Used to represent the available work time tasks or types available in the system like vacation, holiday, military service, etc..","fields":[{"name":"code","data-type":"String","max-length":512},{"name":"color","data-type":"String","max-length":"2048 MB"},{"name":"name","data-type":"String","max-length":512}]},"Configuration":{"version":"v11","description":"Configuration is yet another way of grouping persons to other objects.","fields":[{"name":"code","data-type":"String","max-length":255},{"name":"defaultConfiguration","data-type":"Boolean"},{"name":"description","data-type":"String","max-length":"2048 MB"},{"name":"name","data-type":"String","max-length":255},{"name":"persons","data-type":"List<Identifier>","reference":{"object":"Person"}},{"name":"screenConfigurations","data-type":"List<Identifier>","reference":{"object":"ScreenConfiguration"}}]}}
+
         // Data
         const entities = [
   "Activity",
@@ -1039,6 +1257,13 @@
         let dragEntity = null;
         let dragOffset = { x: 0, y: 0 };
         let autoArrange = false;
+        let currentZoom = 1;
+        let zoomCenter = { x: 0, y: 0 };
+        
+        // Canvas panning state
+        let isPanningCanvas = false;
+        let canvasOffset = { x: 0, y: 0 };
+        let panStartPos = { x: 0, y: 0 };
 
         // Initialize
         const canvas = document.getElementById('canvas');
@@ -1143,6 +1368,11 @@
                 entityPositions[entity] = { ...originalPositions[entity] };
             });
 
+            // Reset zoom and pan
+            currentZoom = 1;
+            canvasOffset = { x: 0, y: 0 };
+            applyTransform();
+
             renderEntities();
             renderConnections();
 
@@ -1150,6 +1380,30 @@
             if (selectedEntity) {
                 applySelectionVisuals(selectedEntity);
             }
+        }
+
+        // Zoom functionality
+        function zoomIn() {
+            if (currentZoom < 3) { // Maximum zoom level
+                currentZoom *= 1.2;
+                applyTransform();
+            }
+        }
+
+        function zoomOut() {
+            if (currentZoom > 0.3) { // Minimum zoom level
+                currentZoom /= 1.2;
+                applyTransform();
+            }
+        }
+
+        function applyTransform() {
+            // Get the center of the viewport
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+
+            canvas.style.transform = `translate(${canvasOffset.x}px, ${canvasOffset.y}px) scale(${currentZoom})`;
+            canvas.style.transformOrigin = `${centerX}px ${centerY}px`;
         }
 
         // Render entities
@@ -1172,6 +1426,7 @@
                 div.innerHTML = `
                     <div class="entity-name">${entity}</div>
                     <div class="entity-connections">${outgoing + incoming} connections</div>
+                    <div class="entity-icon" title="View fields">▣</div>
                 `;
 
                 // Event listeners
@@ -1181,6 +1436,13 @@
                     selectEntity(entity);
                 });
 
+                // Add icon click event
+                const icon = div.querySelector('.entity-icon');
+                icon.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showFieldsPopup(entity);
+                });
+
                 canvas.appendChild(div);
             });
         }
@@ -1188,6 +1450,33 @@
         // Render connections
         function renderConnections() {
             svg.innerHTML = '';
+
+            // Calculate the bounds of all entities to set SVG size
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            
+            entities.forEach(entity => {
+                const pos = entityPositions[entity];
+                if (pos) {
+                    minX = Math.min(minX, pos.x);
+                    minY = Math.min(minY, pos.y);
+                    maxX = Math.max(maxX, pos.x + 120); // Entity width
+                    maxY = Math.max(maxY, pos.y + 60);  // Entity height
+                }
+            });
+
+            // Add padding and ensure minimum size that can accommodate extreme positions
+            const padding = 500;
+            const svgWidth = Math.max(window.innerWidth * 2, maxX + padding, 3000);
+            const svgHeight = Math.max(window.innerHeight * 2, maxY + padding, 3000);
+            
+            // Set SVG dimensions and make canvas match
+            svg.style.width = svgWidth + 'px';
+            svg.style.height = svgHeight + 'px';
+            svg.setAttribute('viewBox', `0 0 ${svgWidth} ${svgHeight}`);
+            
+            // Make canvas expand to match SVG size
+            canvas.style.width = svgWidth + 'px';
+            canvas.style.height = svgHeight + 'px';
 
             relationships.forEach(rel => {
                 const sourcePos = entityPositions[rel.source];
@@ -1238,12 +1527,34 @@
             e.preventDefault();
         }
 
+        // Canvas panning - mousedown on canvas or body (not on entities or controls)
+        function startPanning(e) {
+            if (e.button !== 0) return; // Only left click
+            if (e.target.classList.contains('entity')) return; // Don't pan if clicking on entity
+            if (e.target.closest('#controls') || e.target.closest('#legend') || e.target.closest('#info')) return; // Don't pan if clicking on UI elements
+            
+            isPanningCanvas = true;
+            canvas.classList.add('grabbing');
+            document.body.classList.add('grabbing');
+            panStartPos = {
+                x: e.clientX - canvasOffset.x,
+                y: e.clientY - canvasOffset.y
+            };
+            e.preventDefault();
+        }
+
+        canvas.addEventListener('mousedown', startPanning);
+        document.body.addEventListener('mousedown', startPanning);
+
         document.addEventListener('mousemove', (e) => {
             if (isDragging && dragEntity) {
+                // Entity dragging - allow unlimited movement
                 entityPositions[dragEntity] = {
                     x: e.clientX - dragOffset.x,
                     y: e.clientY - dragOffset.y
                 };
+                
+                // Always re-render both entities and connections to update SVG bounds
                 renderEntities();
                 renderConnections();
 
@@ -1251,12 +1562,22 @@
                 if (selectedEntity === dragEntity) {
                     applySelectionVisuals(selectedEntity);
                 }
+            } else if (isPanningCanvas) {
+                // Canvas panning
+                canvasOffset = {
+                    x: e.clientX - panStartPos.x,
+                    y: e.clientY - panStartPos.y
+                };
+                applyTransform();
             }
         });
 
         document.addEventListener('mouseup', () => {
             isDragging = false;
             dragEntity = null;
+            isPanningCanvas = false;
+            canvas.classList.remove('grabbing');
+            document.body.classList.remove('grabbing');
         });
 
         // Selection functionality with dimming
@@ -1398,12 +1719,130 @@
             }
         });
 
-        // Initialize
-        createInitialLayout();
-        renderEntities();
-        renderConnections();
+        // Keyboard shortcuts for zoom
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) { // Ctrl on Windows/Linux, Cmd on Mac
+                if (e.key === '=' || e.key === '+') {
+                    e.preventDefault();
+                    zoomIn();
+                } else if (e.key === '-') {
+                    e.preventDefault();
+                    zoomOut();
+                } else if (e.key === '0') {
+                    e.preventDefault();
+                    currentZoom = 1;
+                    canvasOffset = { x: 0, y: 0 };
+                    applyTransform();
+                }
+            }
+        });
 
-        console.log('ER Diagram loaded:', entities.length, 'entities,', relationships.length, 'relationships');
+        // Mouse wheel zoom
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            
+            if (e.deltaY < 0) {
+                zoomIn();
+            } else {
+                zoomOut();
+            }
+        });
+
+        // Popup functionality
+        function showFieldsPopup(entity) {
+            const popup = document.getElementById('fields-popup');
+            const overlay = document.getElementById('popup-overlay');
+            const entityName = document.getElementById('popup-entity-name');
+            const version = document.getElementById('popup-version');
+            const description = document.getElementById('popup-description');
+            const fieldsList = document.getElementById('fields-list');
+
+            // Show popup first
+            overlay.classList.add('show');
+            popup.classList.add('show');
+
+            // Set loading state
+            entityName.textContent = entity;
+            version.textContent = 'Loading...';
+            description.textContent = 'Loading field information...';
+            fieldsList.innerHTML = '<li class="field-item">Loading fields...</li>';
+
+            // Get entity data
+            const entityData = entityFields[entity];
+            
+            if (!entityData) {
+                // If no field data available, show a simple message
+                version.textContent = 'N/A';
+                description.textContent = 'Field information not available for this entity. This could mean the JSON data has not been loaded yet or this entity is not included in the field data.';
+                fieldsList.innerHTML = '<li class="field-item"><div class="field-name">No field data available</div><div class="field-details"><div class="field-type">N/A</div></div></li>';
+            } else {
+                // Populate popup with entity data
+                version.textContent = entityData.version || 'N/A';
+                description.textContent = entityData.description || 'No description available.';
+
+                // Build fields list
+                let fieldsHTML = '';
+                if (entityData.fields && entityData.fields.length > 0) {
+                    // Add header with field count
+                    fieldsHTML += `<li class="field-item" style="background: #f0f9ff; border-bottom: 2px solid #0369a1; margin-bottom: 8px;"><div class="field-name" style="font-weight: 700; color: #0369a1;">${entityData.fields.length} Fields</div></li>`;
+                    
+                    entityData.fields.forEach(field => {
+                        const maxLengthText = field['max-length'] ? `Max: ${field['max-length']}` : '';
+                        
+                        // Check if this is an Identifier field with any reference
+                        let referenceText = '';
+                        if (field['data-type'] === 'Identifier' && field.reference && field.reference.object) {
+                            referenceText = `<div class="field-reference" style="color: #9f7aea; font-size: 10px; font-weight: 600;">→ ${field.reference.object}</div>`;
+                        }
+                        
+                        fieldsHTML += `
+                            <li class="field-item">
+                                <div class="field-name">${field.name}</div>
+                                <div class="field-details">
+                                    <div class="field-type">${field['data-type']}</div>
+                                    <div class="field-max-length">${maxLengthText}</div>
+                                    ${referenceText}
+                                </div>
+                            </li>
+                        `;
+                    });
+                } else {
+                    fieldsHTML = '<li class="field-item"><div class="field-name">No fields available</div><div class="field-details"><div class="field-type">Empty</div></div></li>';
+                }
+                fieldsList.innerHTML = fieldsHTML;
+            }
+        }
+
+        function hideFieldsPopup() {
+            const popup = document.getElementById('fields-popup');
+            const overlay = document.getElementById('popup-overlay');
+            
+            popup.classList.remove('show');
+            overlay.classList.remove('show');
+        }
+
+        // Popup event listeners
+        document.getElementById('popup-close').addEventListener('click', hideFieldsPopup);
+        document.getElementById('popup-overlay').addEventListener('click', hideFieldsPopup);
+
+        // Close popup with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                hideFieldsPopup();
+            }
+        });
+
+        // Initialize
+        function initialize() {
+            createInitialLayout();
+            renderEntities();
+            renderConnections();
+            console.log('ER Diagram loaded:', entities.length, 'entities,', relationships.length, 'relationships');
+            console.log('Field data embedded for', Object.keys(entityFields).length, 'entities');
+        }
+
+        // Start initialization
+        initialize();
     </script>
 </body>
 </html>
